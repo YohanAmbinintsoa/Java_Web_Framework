@@ -63,16 +63,19 @@ public class FrontServlet extends HttpServlet {
     }
     
     public void render(String url,HttpServletRequest request,HttpServletResponse response,PrintWriter out) throws Exception{
-        if (!this.MappingUrl.containsKey(url)) {
-            throw new Exception("Url not found.");
-        }
-        out.println(this.MappingUrl.get(url).getClassName());
-       Class mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
-       out.println("print2"+mainClass.getName());
-       Constructor construct=mainClass.getConstructor();
-       ModelView view=(ModelView)mainClass.getMethod(this.MappingUrl.get(url).getMethod()).invoke(construct.newInstance());
-       out.println("/"+view.getView());
-       request.getRequestDispatcher("/"+view.getView()).forward(request, response);
+            if (!this.MappingUrl.containsKey(url)) {
+                throw new Exception("Url not found.");
+            }
+            out.println(this.MappingUrl.get(url).getClassName());
+            Class mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
+            out.println("print2"+mainClass.getName());
+            Constructor construct=mainClass.getConstructor();
+            ModelView view=(ModelView)mainClass.getMethod(this.MappingUrl.get(url).getMethod()).invoke(construct.newInstance());
+            for (Map.Entry<String, Object> entry : view.getData().entrySet()) {
+                request.setAttribute(entry.getKey(),entry.getValue());
+            }
+            out.println("/"+view.getView());
+            request.getRequestDispatcher("/"+view.getView()).forward(request, response);
     }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
