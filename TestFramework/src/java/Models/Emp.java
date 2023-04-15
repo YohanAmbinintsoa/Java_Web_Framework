@@ -5,8 +5,6 @@
 package Models;
 
 import Utilitaires.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 /**
@@ -14,8 +12,8 @@ import java.util.Vector;
  * @author yohan
  */
 public class Emp {
-    String nom;
-  
+    String  nom;
+    
     @Url(url = "/get-all")
     public ModelView getAll(){
         ModelView view=new ModelView();
@@ -23,8 +21,7 @@ public class Emp {
         Vector<Emp> all=new Vector<>();
         all.add(new Emp("Rabe"));
         all.add(new Emp("Yohan"));
-        all.add(new Emp("Ambinintsoa"));
-        view.addItem("list",all);
+        view.addItem("list", all);
         return view;
     }
     
@@ -37,7 +34,10 @@ public class Emp {
         this.setNom(nom);
     }
     
-    public Emp(){}
+    
+    public Emp(){
+        
+    }
 
     public String getNom() {
         return nom;
