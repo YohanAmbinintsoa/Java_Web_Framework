@@ -5,6 +5,7 @@
 package ETU1795.framework.servlet;
 
 import ETU1795.framework.Mapping;
+import Utilitaires.Utils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,6 +13,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -28,17 +33,29 @@ public class FrontServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response,String url)
-            throws ServletException, IOException {
-        PrintWriter out=response.getWriter();
-        out.println("The url is :"+url);
-        String[] part=Utilitaires.Utils.retrieveURLPart(url);
-        out.println("Different parts of the url are:");
-        for (String string : part) {
-            out.println(string);
+    
+    @Override
+    public void init()
+            throws ServletException {
+        super.init(); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/OverriddenMethodBody
+        if (this.MappingUrl.isEmpty()) {
+            try {
+                Utils.Init(MappingUrl);
+            } catch (Exception e) {
+               
+            }
+            
         }
     }
 
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response, String url) throws ServletException, IOException {
+        PrintWriter out=response.getWriter();
+        
+        for (Map.Entry<String, Mapping> entry : MappingUrl.entrySet()) {
+            out.println(entry.getKey());
+        }
+        out.println("djhjsdhjsdhjs");
+    }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
