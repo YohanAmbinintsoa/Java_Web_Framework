@@ -5,6 +5,8 @@
 package Models;
 
 import Utilitaires.*;
+import jakarta.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.Vector;
 
 /**
@@ -13,6 +15,8 @@ import java.util.Vector;
  */
 public class Emp {
     String  nom;
+    Date dateHeure;
+
     
     @Url(url = "/get-all")
     public ModelView getAll(){
@@ -25,9 +29,12 @@ public class Emp {
         return view;
     }
     
-    @Url(url = "/Rava io")
-    public void Insert(){
-        
+    @Url(url = "/insertEmp")
+    public ModelView save(){
+        ModelView view=new ModelView();
+        view.setView("index.jsp");
+        view.addItem("nom", this.getNom());
+        return view;
     }
     
     public Emp(String nom){
@@ -46,6 +53,12 @@ public class Emp {
     public void setNom(String nom) {
         this.nom = nom;
     }
-    
+      public Date getDateHeure() {
+        return dateHeure;
+    }
+
+    public void setDateHeure(Date dateHeure) {
+        this.dateHeure = dateHeure;
+    }
     
 }
