@@ -13,6 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -23,6 +27,8 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.lang.model.element.Element;
 
 /**
  *
@@ -66,16 +72,39 @@ public class FrontServlet extends HttpServlet {
             if (!this.MappingUrl.containsKey(url)) {
                 throw new Exception("Url not found.");
             }
-            out.println(this.MappingUrl.get(url).getClassName());
             Class mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
-            out.println("print2"+mainClass.getName());
             Constructor construct=mainClass.getConstructor();
-            ModelView view=(ModelView)mainClass.getMethod(this.MappingUrl.get(url).getMethod()).invoke(construct.newInstance());
+            Object instance=construct.newInstance();
+            this.sendData(request, instance,out);
+            ModelView view=(ModelView)mainClass.getMethod(this.MappingUrl.get(url).getMethod()).invoke(instance);
             for (Map.Entry<String, Object> entry : view.getData().entrySet()) {
                 request.setAttribute(entry.getKey(),entry.getValue());
             }
-            out.println("/"+view.getView());
             request.getRequestDispatcher("/"+view.getView()).forward(request, response);
+    }
+
+    public void sendData(HttpServletRequest request,Object c,PrintWriter out) throws Exception{
+        if (request.getParameterNames().hasMoreElements()==true) {
+            Field[] fields=c.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                field.setAccessible(true);
+                String element=field.getName();
+                if (request.getParameter(element)!=null) {
+                    Method method=c.getClass().getDeclaredMethod("set"+Utils.capitalize(element),field.getType());
+                    Object data=request.getParameter(element);
+                    if (field.getType().equals(java.util.Date.class)) {
+                        out.println(element);
+                        SimpleDateFormat format=new SimpleDateFormat("YYYY-MM-dd");
+                        data=format.parse((String)data);
+                    } else if(field.getType().equals(Date.class)){
+                        SimpleDateFormat format=new SimpleDateFormat("YYYY-MM-dd");
+                        java.util.Date temp=format.parse((String)data);
+                        data=new Date(temp.getTime());
+                    }
+                    method.invoke(c, field.getType().cast(data));
+                }
+            }
+        }        
     }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
