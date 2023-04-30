@@ -65,6 +65,7 @@ public class Utils {
                              Mapping mapper=new Mapping();
                              mapper.setClassName(allclas.getName());
                              mapper.setMethod(method.getName());
+                             mapper.setParams(method.getParameterTypes());
                              map.put(u.url(),mapper);
                           }
                      }

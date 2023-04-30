@@ -30,10 +30,11 @@ public class Emp {
     }
     
     @Url(url = "/insertEmp")
-    public ModelView save(){
+    public ModelView save(String id){
         ModelView view=new ModelView();
         view.setView("index.jsp");
         view.addItem("nom", this.getNom());
+        view.addItem("id", id);
         return view;
     }
     
