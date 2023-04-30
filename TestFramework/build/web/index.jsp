@@ -8,8 +8,12 @@
 <!DOCTYPE html>
 <%
     String nom="";
+    String id="";
     if(request.getAttribute("nom")!=null){
         nom=(String)request.getAttribute("nom");
+    }
+    if(request.getAttribute("id")!=null){
+        id=(String)request.getAttribute("id");
     }
 %>
 <html>
@@ -27,5 +31,6 @@
             <input type="submit" value="Inserer">
         </form>
         <p><%=nom %></p>
+        <p><%=id %></p>
     </body>
 </html>

@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 
@@ -76,7 +77,9 @@ public class FrontServlet extends HttpServlet {
             Constructor construct=mainClass.getConstructor();
             Object instance=construct.newInstance();
             this.sendData(request, instance,out);
-            ModelView view=(ModelView)mainClass.getMethod(this.MappingUrl.get(url).getMethod()).invoke(instance);
+            Method met=mainClass.getMethod(this.MappingUrl.get(url).getMethod(),this.MappingUrl.get(url).getParams());
+            Object[] parameters=this.getArgs(request, met);
+            ModelView view=(ModelView)met.invoke(instance,parameters);
             for (Map.Entry<String, Object> entry : view.getData().entrySet()) {
                 request.setAttribute(entry.getKey(),entry.getValue());
             }
@@ -105,6 +108,21 @@ public class FrontServlet extends HttpServlet {
                 }
             }
         }        
+    }
+    public Object[] getArgs(HttpServletRequest req,Method met) throws Exception{
+        Object[] args=new Object[met.getParameterCount()];
+        if (req.getParameterNames().hasMoreElements()==true) {
+            Parameter[] params=met.getParameters();
+            for (Parameter parameter : params) {
+                String name=parameter.getName();
+                int i=0;
+                if (req.getParameter(name)!=null) {
+                    args[i]=parameter.getType().cast(req.getParameter(name));
+                    i+=1;
+                }
+            }
+        }
+        return args;
     }
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**

@@ -11,6 +11,7 @@ package ETU1795.framework;
 public class Mapping {
     String className;
     String Method;
+    Class[] params;
 
     public String getClassName() {
         return className;
@@ -26,6 +27,14 @@ public class Mapping {
 
     public void setMethod(String Method) {
         this.Method = Method;
+    }
+
+    public Class[] getParams() {
+        return params;
+    }
+
+    public void setParams(Class[] params) {
+        this.params = params;
     }
     
     
