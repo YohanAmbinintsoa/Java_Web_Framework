@@ -25,9 +25,10 @@
         <h1>Hello World!</h1>
         <a href="milay/get-all">Lasa.jsp</a>
         <br>
-        <form action="milay/insertEmp" method="GET">
+        <form enctype="multipart/form-data" action="milay/insertEmp" method="POST">
             <input type="text" name="nom"  placeholder="Nom employe">
             <input type="date" name="dateHeure">
+            <input type="file" name="file" id="">
             <input type="submit" value="Inserer">
         </form>
         <p><%=nom %></p>
