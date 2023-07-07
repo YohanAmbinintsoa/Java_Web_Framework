@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import ETU1795.framework.User;
 import ETU1795.framework.Session;
+import com.google.gson.Gson;
 
 import javax.lang.model.element.Element;
 
@@ -78,10 +79,6 @@ public class FrontServlet extends HttpServlet {
                 
             }
         }
-        
-        for (Map.Entry<String, Mapping> entry : MappingUrl.entrySet()) {
-            out.println(entry.getKey());
-        }
         try {
             this.render(url, request, response,out);
         } catch (Exception e) {
@@ -118,9 +115,12 @@ public class FrontServlet extends HttpServlet {
         Class c=obj.getClass();
         HttpSession reqSession=request.getSession();
         if (c.isAnnotationPresent(Session.class)) {
-           HashMap<String,Object> session=(HashMap<String,Object>)c.getDeclaredField("session").get(c);
+            Field map=c.getDeclaredField("session");
+            map.setAccessible(true);
+           HashMap<String,Object> session=(HashMap<String,Object>)map.get(obj);
            for (Map.Entry<String, Object> entry : session.entrySet()){
-            reqSession.setAttribute(entry.getKey(),entry.getValue());
+                reqSession.setAttribute(entry.getKey(),entry.getValue());
+            
             }
 
         }
@@ -168,7 +168,14 @@ public class FrontServlet extends HttpServlet {
             for (Map.Entry<String, Object> entry : view.getData().entrySet()) {
                 request.setAttribute(entry.getKey(),entry.getValue());
             }
-            // request.getRequestDispatcher("/"+view.getView()).forward(request, response);
+            if (view.isJson()==true) {
+                response.setContentType("application/json");
+                Gson g=new Gson();
+                String json=g.toJson(view.getData());
+                out.println(json);
+            } else  {
+                request.getRequestDispatcher("/"+view.getView()).forward(request, response);
+            }
     }
 
     public void sendData(HttpServletRequest request,Object c,PrintWriter out) throws Exception{
@@ -182,7 +189,7 @@ public class FrontServlet extends HttpServlet {
                         Method method=c.getClass().getDeclaredMethod("set"+Utils.capitalize(element),field.getType());
                         Object data=request.getParameter(element);
                         if (field.getType().equals(java.util.Date.class)) {
-                            out.println(element);
+                            
                             SimpleDateFormat format=new SimpleDateFormat("YYYY-MM-dd");
                             data=format.parse((String)data);
                         } else if(field.getType().equals(Date.class)){
