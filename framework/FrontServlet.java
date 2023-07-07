@@ -19,6 +19,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.net.HttpCookie;
+import java.net.http.HttpRequest;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 
@@ -34,6 +36,7 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ETU1795.framework.User;
 
 import javax.lang.model.element.Element;
 
@@ -74,11 +77,11 @@ public class FrontServlet extends HttpServlet {
                 
             }
         }
+        
         for (Map.Entry<String, Mapping> entry : MappingUrl.entrySet()) {
             out.println(entry.getKey());
         }
         try {
-            
             this.render(url, request, response,out);
         } catch (Exception e) {
             out.print(e.getMessage());
@@ -101,6 +104,13 @@ public class FrontServlet extends HttpServlet {
             valiny=construct.newInstance();
         }
         return valiny;
+    }   
+
+    public void insertSession(HttpServletRequest req,HashMap<String,Object> session,PrintWriter out) throws Exception{
+        HttpSession reqSession=req.getSession();
+        for (Map.Entry<String, Object> entry : session.entrySet()){
+            reqSession.setAttribute(entry.getKey(),entry.getValue());
+        }
     }
     
     public void render(String url,HttpServletRequest request,HttpServletResponse response,PrintWriter out) throws Exception{
@@ -110,7 +120,13 @@ public class FrontServlet extends HttpServlet {
             Class mainClass=null;
             Object instance=null;
             if (singletons.containsKey(this.MappingUrl.get(url).getClassName())) {
-                
+                mainClass=singletons.get(this.MappingUrl.get(url).getClassName());
+                if (mainClass==null) {
+                    mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
+                    singletons.replace(this.MappingUrl.get(url).getClassName(), mainClass);
+                }
+                Constructor construct=mainClass.getConstructor();
+                instance=construct.newInstance();
             } else {
                 mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
                 Constructor construct=mainClass.getConstructor();
@@ -118,12 +134,28 @@ public class FrontServlet extends HttpServlet {
             }
             this.sendData(request, instance,out);
             Method met=mainClass.getMethod(this.MappingUrl.get(url).getMethod(),this.MappingUrl.get(url).getParams());
-            Object[] parameters=this.getArgs(request, met);
-            ModelView view=(ModelView)met.invoke(instance,parameters);
+            ModelView view=null;
+            if (met.isAnnotationPresent(User.class)) { 
+                HttpSession sess=request.getSession();
+                User user=met.getAnnotation(User.class);
+                Object obj=sess.getAttribute(user.user());
+                if ((boolean)obj!=true) {
+                    throw new Exception("Manque de Privileges!");
+                } else {
+                    Object[] parameters=this.getArgs(request, met);
+                    view=(ModelView)met.invoke(instance,parameters);
+                }
+            } else {
+                Object[] parameters=this.getArgs(request, met);
+                view=(ModelView)met.invoke(instance,parameters);
+            }
+            if(!view.getSession().isEmpty()){
+                insertSession(request, view.getSession(),out);
+            }
             for (Map.Entry<String, Object> entry : view.getData().entrySet()) {
                 request.setAttribute(entry.getKey(),entry.getValue());
             }
-            request.getRequestDispatcher("/"+view.getView()).forward(request, response);
+            // request.getRequestDispatcher("/"+view.getView()).forward(request, response);
     }
 
     public void sendData(HttpServletRequest request,Object c,PrintWriter out) throws Exception{
@@ -131,7 +163,6 @@ public class FrontServlet extends HttpServlet {
             for (Field field : fields) {
                 field.setAccessible(true);
                 String element=field.getName();
-                out.println(request.getParameter(element));
                 if (!field.getType().equals(FileUpload.class)) {
                     if (request.getParameter(element)!=null) {
                         Method method=c.getClass().getDeclaredMethod("set"+Utils.capitalize(element),field.getType());
@@ -149,10 +180,8 @@ public class FrontServlet extends HttpServlet {
                         out.println("Not file Upload");
                     }
                 } else {
-                    out.println(request.getParameter(element));
                     try {
                         Part filePart=request.getPart(element);
-                        out.println(filePart);
                         FileUpload upload=new FileUpload();
                         upload.setNom(filePart.getSubmittedFileName()); 
                         InputStream inputStream = filePart.getInputStream();

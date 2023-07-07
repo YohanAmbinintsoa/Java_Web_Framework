@@ -22,8 +22,8 @@
         <title>JSP Page</title>
     </head>
     <body>
-        <h1>Hello World!</h1>
-        <a href="milay/get-all">Lasa.jsp</a>
+        <h1>Sprint 8</h1>
+        <a href="milay/get-all">Sprint 7</a>
         <br>
         <form enctype="multipart/form-data" action="milay/insertEmp" method="POST">
             <input type="text" name="nom"  placeholder="Nom employe">
@@ -33,5 +33,10 @@
         </form>
         <p><%=nom %></p>
         <p><%=id %></p>
+        <h1>Sprint 11</h1>
+        <form action="milay/check-user" method="get">
+            <input type="text" name="user" id="">
+            <input type="submit" value="Valider">
+        </form>
     </body>
 </html>

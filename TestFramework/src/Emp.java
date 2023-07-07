@@ -9,20 +9,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Vector;
 import ETU1795.framework.Scope;
-
+import ETU1795.framework.User;
 import ETU1795.framework.FileUpload;
-
+import ETU1795.framework.Session;
 /**
  *
  * @author yohan
  */
+@Session
 @Scope(type="singleton")
 public class Emp {
     String  nom;
     Date dateHeure;
     FileUpload file;
 
-    
     @Url(url = "/get-all")
     public ModelView getAll(){
         ModelView view=new ModelView();
@@ -34,6 +34,7 @@ public class Emp {
         return view;
     }
     
+    @User(user = "admin")
     @Url(url = "/insertEmp")
     public ModelView save(String id){
         ModelView view=new ModelView();
@@ -46,7 +47,6 @@ public class Emp {
     public Emp(String nom){
         this.setNom(nom);
     }
-    
     
     public Emp(){
         

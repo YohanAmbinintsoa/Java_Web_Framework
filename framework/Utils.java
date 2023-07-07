@@ -65,7 +65,6 @@ public class Utils {
                             single.put(allclas.getName(), null);
                          }
                      }
-                    
                      Method[] methods=allclas.getDeclaredMethods();
                      for (Method method : methods) {
                          if (method.isAnnotationPresent(Url.class)) {
