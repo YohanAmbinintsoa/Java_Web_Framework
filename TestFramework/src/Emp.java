@@ -8,10 +8,7 @@ import Utilitaires.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Vector;
-import ETU1795.framework.Scope;
-import ETU1795.framework.User;
-import ETU1795.framework.FileUpload;
-import ETU1795.framework.Session;
+import ETU1795.framework.*;
 import java.util.HashMap;
 import java.util.Map;
 /**
@@ -24,7 +21,7 @@ public class Emp {
     String  nom;
     Date dateHeure;
     FileUpload file;
-    HashMap<String,Object> session;
+    HashMap<String,Object> session=new HashMap<>();
 
     @Url(url = "/get-all")
     public ModelView getAll(){
@@ -54,6 +51,15 @@ public class Emp {
             view.addItem(entry.getKey(), entry.getValue());
         }
         
+        return view;
+    }
+
+    @Url(url = "/testJson")
+    public ModelView testJson(){
+        ModelView view=new ModelView();
+        view.addItem("nom", "Yohx");
+        view.addItem("prenom", "Yohan");
+        view.setJson(true);
         return view;
     }
     
