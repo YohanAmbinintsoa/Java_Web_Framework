@@ -10,6 +10,7 @@ import jakarta.servlet.http.*;
 import Utilitaires.*;
 import ETU1795.framework.Mapping;
 import ETU1795.framework.FileUpload;
+import ETU1795.framework.Json;
 import ETU1795.framework.Scope;
 
 import java.io.File;
@@ -147,20 +148,29 @@ public class FrontServlet extends HttpServlet {
             }
             this.sendData(request, instance,out);
             Method met=mainClass.getMethod(this.MappingUrl.get(url).getMethod(),this.MappingUrl.get(url).getParams());
-            ModelView view=null;
-            if (met.isAnnotationPresent(User.class)) { 
-                HttpSession sess=request.getSession();
-                User user=met.getAnnotation(User.class);
-                Object obj=sess.getAttribute(user.user());
-                if ((boolean)obj!=true) {
-                    throw new Exception("Manque de Privileges!");
+            if (met.isAnnotationPresent(Json.class)) {
+                response.setContentType("application/json");
+                Object[] parameters=this.getArgs(request, met);
+                Object obj=met.invoke(instance, parameters);
+                Gson g=new Gson();
+                String json=g.toJson(obj);
+                out.println(json);
+            } else {
+                ModelView view=null;
+                if (met.isAnnotationPresent(User.class)) { 
+                    HttpSession sess=request.getSession();
+                    User user=met.getAnnotation(User.class);
+                    Object obj=sess.getAttribute(user.user());
+                    if (obj==null ||(boolean)obj!=true) {
+                        throw new Exception("Manque de Privileges!");
+                    } else {
+                        out.println("niditra");
+                        Object[] parameters=this.getArgs(request, met);
+                        view=(ModelView)met.invoke(instance,parameters);
+                    }
                 } else {
                     Object[] parameters=this.getArgs(request, met);
                     view=(ModelView)met.invoke(instance,parameters);
-                }
-            } else {
-                Object[] parameters=this.getArgs(request, met);
-                view=(ModelView)met.invoke(instance,parameters);
             }
             if(!view.getSession().isEmpty()){
                 insertSession(request, view.getSession(),out);
@@ -176,6 +186,8 @@ public class FrontServlet extends HttpServlet {
             } else  {
                 request.getRequestDispatcher("/"+view.getView()).forward(request, response);
             }
+            }
+            
     }
 
     public void sendData(HttpServletRequest request,Object c,PrintWriter out) throws Exception{

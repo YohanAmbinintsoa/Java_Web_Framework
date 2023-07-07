@@ -62,6 +62,13 @@ public class Emp {
         view.setJson(true);
         return view;
     }
+
+    @Json
+    @Url(url = "/testJson2")
+    public Emp testJson2(){
+        Emp emp=new Emp("Rabe");
+        return emp;
+    }
     
     public Emp(String nom){
         this.setNom(nom);
