@@ -5,9 +5,11 @@
 package ETU1795.framework.servlet;
 
 import jakarta.servlet.*;
+import java.io.*;
 import jakarta.servlet.http.*;
 import Utilitaires.*;
 import ETU1795.framework.Mapping;
+import ETU1795.framework.FileUpload;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,6 +25,9 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.annotation.MultipartConfig;
+
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
@@ -35,6 +40,7 @@ import javax.lang.model.element.Element;
  *
  * @author yohan
  */
+@MultipartConfig
 public class FrontServlet extends HttpServlet {
     HashMap<String, Mapping> MappingUrl=new HashMap<>();
     /**
@@ -76,7 +82,9 @@ public class FrontServlet extends HttpServlet {
             Class mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
             Constructor construct=mainClass.getConstructor();
             Object instance=construct.newInstance();
+            out.println("Aonaaa");
             this.sendData(request, instance,out);
+            out.println("Yeeeee");
             Method met=mainClass.getMethod(this.MappingUrl.get(url).getMethod(),this.MappingUrl.get(url).getParams());
             Object[] parameters=this.getArgs(request, met);
             ModelView view=(ModelView)met.invoke(instance,parameters);
@@ -87,26 +95,53 @@ public class FrontServlet extends HttpServlet {
     }
 
     public void sendData(HttpServletRequest request,Object c,PrintWriter out) throws Exception{
-        if (request.getParameterNames().hasMoreElements()==true) {
             Field[] fields=c.getClass().getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
                 String element=field.getName();
-                if (request.getParameter(element)!=null) {
-                    Method method=c.getClass().getDeclaredMethod("set"+Utils.capitalize(element),field.getType());
-                    Object data=request.getParameter(element);
-                    if (field.getType().equals(java.util.Date.class)) {
-                        out.println(element);
-                        SimpleDateFormat format=new SimpleDateFormat("YYYY-MM-dd");
-                        data=format.parse((String)data);
-                    } else if(field.getType().equals(Date.class)){
-                        SimpleDateFormat format=new SimpleDateFormat("YYYY-MM-dd");
-                        java.util.Date temp=format.parse((String)data);
-                        data=new Date(temp.getTime());
+                out.println(request.getParameter(element));
+                if (!field.getType().equals(FileUpload.class)) {
+                    if (request.getParameter(element)!=null) {
+                        Method method=c.getClass().getDeclaredMethod("set"+Utils.capitalize(element),field.getType());
+                        Object data=request.getParameter(element);
+                        if (field.getType().equals(java.util.Date.class)) {
+                            out.println(element);
+                            SimpleDateFormat format=new SimpleDateFormat("YYYY-MM-dd");
+                            data=format.parse((String)data);
+                        } else if(field.getType().equals(Date.class)){
+                            SimpleDateFormat format=new SimpleDateFormat("YYYY-MM-dd");
+                            java.util.Date temp=format.parse((String)data);
+                            data=new Date(temp.getTime());
+                        }
+                        method.invoke(c, field.getType().cast(data));
+                        out.println("Not file Upload");
                     }
-                    method.invoke(c, field.getType().cast(data));
+                } else {
+                    out.println(request.getParameter(element));
+                    // for(Part part : request.getParts()){
+                    //     System.out.println("PN: "+ part.getName());
+                    //     Collection<String> headers = part.getHeaders("content-disposition");
+                    //     if (headers == null)
+                    //         continue;
+                    //     for(String header : headers){
+                    //         out.println("CDH: " + header);                  
+                    //     } 
+                    // }
+                    try {
+                        Part filePart=request.getPart(element);
+                        out.println(filePart);
+                        FileUpload upload=new FileUpload();
+                        upload.setNom(filePart.getSubmittedFileName()); 
+                        InputStream inputStream = filePart.getInputStream();
+                        upload.setData(inputStream.readAllBytes());
+                        Method method=c.getClass().getDeclaredMethod("set"+Utils.capitalize(element),field.getType());
+                        method.invoke(c, upload);
+                        out.println("File upload");
+                    } catch (Exception e) {
+                        
+                    }
+                    
                 }
-            }
         }        
     }
     public Object[] getArgs(HttpServletRequest req,Method met) throws Exception{
@@ -152,16 +187,5 @@ public class FrontServlet extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response,request.getPathInfo());
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }
 

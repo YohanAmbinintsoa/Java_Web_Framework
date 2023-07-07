@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Vector;
 
+import ETU1795.framework.FileUpload;
+
 /**
  *
  * @author yohan
@@ -16,6 +18,7 @@ import java.util.Vector;
 public class Emp {
     String  nom;
     Date dateHeure;
+    FileUpload file;
 
     
     @Url(url = "/get-all")
@@ -60,6 +63,14 @@ public class Emp {
 
     public void setDateHeure(Date dateHeure) {
         this.dateHeure = dateHeure;
+    }
+
+    public FileUpload getFile() {
+        return file;
+    }
+
+    public void setFile(FileUpload file) {
+        this.file = file;
     }
     
 }
