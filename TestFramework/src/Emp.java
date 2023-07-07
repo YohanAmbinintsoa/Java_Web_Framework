@@ -12,6 +12,8 @@ import ETU1795.framework.Scope;
 import ETU1795.framework.User;
 import ETU1795.framework.FileUpload;
 import ETU1795.framework.Session;
+import java.util.HashMap;
+import java.util.Map;
 /**
  *
  * @author yohan
@@ -22,6 +24,7 @@ public class Emp {
     String  nom;
     Date dateHeure;
     FileUpload file;
+    HashMap<String,Object> session;
 
     @Url(url = "/get-all")
     public ModelView getAll(){
@@ -41,6 +44,16 @@ public class Emp {
         view.setView("index.jsp");
         view.addItem("nom", this.getNom());
         view.addItem("id", id);
+        return view;
+    }
+    @Url(url = "/seeSession")
+    public ModelView session(){
+        ModelView view=new ModelView();
+        view.setView("index.jsp");
+        for (Map.Entry<String, Object> entry : this.session.entrySet()) {
+            view.addItem(entry.getKey(), entry.getValue());
+        }
+        
         return view;
     }
     
@@ -73,6 +86,14 @@ public class Emp {
 
     public void setFile(FileUpload file) {
         this.file = file;
+    }
+
+    public HashMap<String, Object> getSession() {
+        return session;
+    }
+
+    public void setSession(HashMap<String, Object> session) {
+        this.session = session;
     }
     
 }
