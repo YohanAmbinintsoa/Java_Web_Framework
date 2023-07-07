@@ -50,7 +50,7 @@ public class Utils {
         return allclass;
     }
     
-    public static void Init(HashMap<String,Mapping> map) throws Exception{
+    public static void Init(HashMap<String,Mapping> map,HashMap<String,Class> single) throws Exception{
         String path=Utils.class.getClassLoader().getResource("").getPath();
         File files=new File(path);
         File[] dir=files.listFiles();
@@ -58,6 +58,14 @@ public class Utils {
             if (aPackage.isDirectory()) {
                  Vector<Class> allclass=Utils.getClassInside(path+aPackage.getName(),aPackage.getName());
                  for (Class allclas : allclass) {
+                     Scope sc=null;
+                     if (allclas.isAnnotationPresent(Scope.class)) {
+                        sc=(Scope)allclas.getAnnotation(Scope.class);
+                        if (sc.type().equalsIgnoreCase("singleton")) {
+                            single.put(allclas.getName(), null);
+                         }
+                     }
+                    
                      Method[] methods=allclas.getDeclaredMethods();
                      for (Method method : methods) {
                          if (method.isAnnotationPresent(Url.class)) {

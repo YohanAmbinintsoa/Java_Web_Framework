@@ -8,6 +8,7 @@ import Utilitaires.*;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.Vector;
+import ETU1795.framework.Scope;
 
 import ETU1795.framework.FileUpload;
 
@@ -15,6 +16,7 @@ import ETU1795.framework.FileUpload;
  *
  * @author yohan
  */
+@Scope(type="singleton")
 public class Emp {
     String  nom;
     Date dateHeure;
