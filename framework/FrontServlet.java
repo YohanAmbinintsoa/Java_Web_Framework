@@ -37,6 +37,7 @@ import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import ETU1795.framework.User;
+import ETU1795.framework.Session;
 
 import javax.lang.model.element.Element;
 
@@ -112,6 +113,18 @@ public class FrontServlet extends HttpServlet {
             reqSession.setAttribute(entry.getKey(),entry.getValue());
         }
     }
+
+    public void sessionToClass(HttpServletRequest request,Object obj) throws Exception{
+        Class c=obj.getClass();
+        HttpSession reqSession=request.getSession();
+        if (c.isAnnotationPresent(Session.class)) {
+           HashMap<String,Object> session=(HashMap<String,Object>)c.getDeclaredField("session").get(c);
+           for (Map.Entry<String, Object> entry : session.entrySet()){
+            reqSession.setAttribute(entry.getKey(),entry.getValue());
+            }
+
+        }
+    }
     
     public void render(String url,HttpServletRequest request,HttpServletResponse response,PrintWriter out) throws Exception{
             if (!this.MappingUrl.containsKey(url)) {
@@ -159,6 +172,7 @@ public class FrontServlet extends HttpServlet {
     }
 
     public void sendData(HttpServletRequest request,Object c,PrintWriter out) throws Exception{
+            this.sessionToClass(request, c);
             Field[] fields=c.getClass().getDeclaredFields();
             for (Field field : fields) {
                 field.setAccessible(true);
