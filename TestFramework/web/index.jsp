@@ -16,6 +16,7 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <title>JSP Page</title>
+        <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     </head>
     <body>
         <h1>Sprint 8</h1>
