@@ -12,7 +12,7 @@ import java.util.HashMap;
 public class ModelView {
     String view;
     HashMap<String,Object> data=new HashMap<>();
-
+    
     public void addItem(String key,Object value){
         this.data.put(key,value);
     }

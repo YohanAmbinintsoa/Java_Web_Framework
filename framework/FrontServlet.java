@@ -10,6 +10,7 @@ import jakarta.servlet.http.*;
 import Utilitaires.*;
 import ETU1795.framework.Mapping;
 import ETU1795.framework.FileUpload;
+import ETU1795.framework.Scope;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import javax.lang.model.element.Element;
 @MultipartConfig
 public class FrontServlet extends HttpServlet {
     HashMap<String, Mapping> MappingUrl=new HashMap<>();
+    HashMap<String,Class> singletons=new HashMap();
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -52,39 +54,69 @@ public class FrontServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
+    @Override
+    public void init() throws ServletException {
+        super.init();
+            try {
+                Utils.Init(MappingUrl,singletons);
+            } catch (Exception e) {
+                
+            }
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response,String url)
             throws ServletException, IOException {
         PrintWriter out=response.getWriter();
-        if (this.MappingUrl.isEmpty()) {
+        if (this.MappingUrl.isEmpty() && this.singletons.isEmpty()) {
             try {
-                Utils.Init(MappingUrl);
+                Utils.Init(MappingUrl,singletons);
             } catch (Exception e) {
-                out.println(e.getMessage());
+                
             }
-            
         }
         for (Map.Entry<String, Mapping> entry : MappingUrl.entrySet()) {
             out.println(entry.getKey());
         }
-        out.println("djhjsdhjsdhjs");
         try {
+            
             this.render(url, request, response,out);
         } catch (Exception e) {
             out.print(e.getMessage());
         }
         
     }
+
+    public Object setDefault(String key) throws Exception{
+        Object valiny=null;
+        if (this.singletons.get(key)!=null) {
+            valiny=this.singletons.get(key);
+            Field[] fields=valiny.getClass().getDeclaredFields();
+            for (Field field:fields){
+                field.setAccessible(true);
+                field.set(valiny, null);
+            }
+        } else {
+            Class mainClass=Class.forName(key);
+            Constructor construct=mainClass.getConstructor();
+            valiny=construct.newInstance();
+        }
+        return valiny;
+    }
     
     public void render(String url,HttpServletRequest request,HttpServletResponse response,PrintWriter out) throws Exception{
             if (!this.MappingUrl.containsKey(url)) {
                 throw new Exception("Url not found.");
             }
-            Class mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
-            Constructor construct=mainClass.getConstructor();
-            Object instance=construct.newInstance();
-            out.println("Aonaaa");
+            Class mainClass=null;
+            Object instance=null;
+            if (singletons.containsKey(this.MappingUrl.get(url).getClassName())) {
+                
+            } else {
+                mainClass=Class.forName(this.MappingUrl.get(url).getClassName());
+                Constructor construct=mainClass.getConstructor();
+                instance=construct.newInstance();
+            }
             this.sendData(request, instance,out);
-            out.println("Yeeeee");
             Method met=mainClass.getMethod(this.MappingUrl.get(url).getMethod(),this.MappingUrl.get(url).getParams());
             Object[] parameters=this.getArgs(request, met);
             ModelView view=(ModelView)met.invoke(instance,parameters);
@@ -118,15 +150,6 @@ public class FrontServlet extends HttpServlet {
                     }
                 } else {
                     out.println(request.getParameter(element));
-                    // for(Part part : request.getParts()){
-                    //     System.out.println("PN: "+ part.getName());
-                    //     Collection<String> headers = part.getHeaders("content-disposition");
-                    //     if (headers == null)
-                    //         continue;
-                    //     for(String header : headers){
-                    //         out.println("CDH: " + header);                  
-                    //     } 
-                    // }
                     try {
                         Part filePart=request.getPart(element);
                         out.println(filePart);
@@ -136,7 +159,6 @@ public class FrontServlet extends HttpServlet {
                         upload.setData(inputStream.readAllBytes());
                         Method method=c.getClass().getDeclaredMethod("set"+Utils.capitalize(element),field.getType());
                         method.invoke(c, upload);
-                        out.println("File upload");
                     } catch (Exception e) {
                         
                     }
@@ -187,5 +209,23 @@ public class FrontServlet extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response,request.getPathInfo());
     }
+
+    public HashMap<String, Mapping> getMappingUrl() {
+        return MappingUrl;
+    }
+
+    public void setMappingUrl(HashMap<String, Mapping> mappingUrl) {
+        MappingUrl = mappingUrl;
+    }
+
+    public HashMap<String, Class> getSingletons() {
+        return singletons;
+    }
+
+    public void setSingletons(HashMap<String, Class> singletons) {
+        this.singletons = singletons;
+    }
+
+    
 }
 
